@@ -112,10 +112,14 @@ contains
     self%zseed = zseed
 
     call random_seed(size=n)
-    if( allocated(self%other_state) .and. size(self%other_state) /= n)deallocate(self%other_state)
-    if(.not.allocated(self%other_state))allocate(self%other_state(1:n))
-    if( allocated(self%my_state) .and. size(self%my_state) /= n)deallocate(self%my_state)
-    if( .not.allocated(self%my_state))allocate(self%my_state(1:n))
+    if( allocated(self%other_state) )then
+       if( size(self%other_state) /= n )deallocate(self%other_state)
+    end if
+    if( allocated(self%my_state) )then
+       if( size(self%my_state) /= n)deallocate(self%my_state)
+    end if
+    if( .not.allocated(self%other_state))allocate(self%other_state(1:n))
+    if( .not.allocated(self%my_state   ))allocate(self%my_state(1:n))
 
     ! put first element of seed
     self%my_state(1) = lcg( int(zseed, int64) )
