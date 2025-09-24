@@ -1,5 +1,6 @@
 module m_random
 
+  use, intrinsic :: iso_fortran_env, only: real32, real64, real128
   implicit none
   private
   public :: t_random
@@ -16,7 +17,13 @@ module m_random
      integer, allocatable, private :: my_state(:), other_state(:)
    contains
      procedure, public :: reseed => t_random_reseed
-     procedure, public :: random_number => t_random_number
+
+     procedure, private :: t_random_number_real32
+     procedure, private :: t_random_number_real64
+     procedure, private :: t_random_number_real128
+     generic, public :: random_number => t_random_number_real32
+     generic, public :: random_number => t_random_number_real64
+     generic, public :: random_number => t_random_number_real128
      final :: t_random_destroy
   end type t_random
 
@@ -61,12 +68,11 @@ contains
     if( allocated(self%other_state)) deallocate( self%other_state )
   end subroutine t_random_destroy
 
-
-  subroutine t_random_number( self, z )
+  subroutine t_random_number_real32( self, z )
     !! Obtain a random real number `z`, on range [0:1].
     implicit none
     class( t_random ), intent(inout) :: self
-    real, intent(out) :: z(..) !! random[0:1], up to rank-3
+    real(real32), intent(out) :: z(..) !! random[0:1], up to rank-3
     ! save external state
     call random_seed(get=self%other_state)
     ! put my state
@@ -82,7 +88,49 @@ contains
     call random_seed(get=self%my_state)
     ! re-put old external state
     call random_seed(put=self%other_state)
-  end subroutine t_random_number
+  end subroutine t_random_number_real32
+  subroutine t_random_number_real64( self, z )
+    !! Obtain a random real number `z`, on range [0:1].
+    implicit none
+    class( t_random ), intent(inout) :: self
+    real(real64), intent(out) :: z(..) !! random[0:1], up to rank-3
+    ! save external state
+    call random_seed(get=self%other_state)
+    ! put my state
+    call random_seed(put=self%my_state)
+    ! generate number
+    select rank(z)
+    rank(0); call random_number(z)
+    rank(1); call random_number(z)
+    rank(2); call random_number(z)
+    rank(3); call random_number(z)
+    end select
+    ! save my new state
+    call random_seed(get=self%my_state)
+    ! re-put old external state
+    call random_seed(put=self%other_state)
+  end subroutine t_random_number_real64
+  subroutine t_random_number_real128( self, z )
+    !! Obtain a random real number `z`, on range [0:1].
+    implicit none
+    class( t_random ), intent(inout) :: self
+    real(real128), intent(out) :: z(..) !! random[0:1], up to rank-3
+    ! save external state
+    call random_seed(get=self%other_state)
+    ! put my state
+    call random_seed(put=self%my_state)
+    ! generate number
+    select rank(z)
+    rank(0); call random_number(z)
+    rank(1); call random_number(z)
+    rank(2); call random_number(z)
+    rank(3); call random_number(z)
+    end select
+    ! save my new state
+    call random_seed(get=self%my_state)
+    ! re-put old external state
+    call random_seed(put=self%other_state)
+  end subroutine t_random_number_real128
 
 
   subroutine t_random_reseed( self, zseed )
